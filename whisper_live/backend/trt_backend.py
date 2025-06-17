@@ -3,6 +3,8 @@ import logging
 import threading
 import time
 
+import uuid
+
 from whisper_live.backend.base import ServeClientBase
 from whisper_live.transcriber.transcriber_tensorrt import WhisperTRTLLM
 
@@ -163,10 +165,15 @@ class ServeClientTensorRT(ServeClientBase):
             last_segment (str): Last transcribed audio from the whisper model.
             duration (float): Duration of the last audio chunk.
         """
+        formatted_segment = {
+            "text": last_segment + " ",
+            "uid": uuid.uuid4().hex,
+        }
+
         if not len(self.transcript):
-            self.transcript.append({"text": last_segment + " "})
+            self.transcript.append(formatted_segment)
         elif self.transcript[-1]["text"].strip() != last_segment:
-            self.transcript.append({"text": last_segment + " "})
+            self.transcript.append(formatted_segment)
         
         with self.lock:
             self.timestamp_offset += duration
